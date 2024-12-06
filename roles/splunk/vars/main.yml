@@ -1,0 +1,2 @@
+splunk_deb_file: splunkforwarder-9.2.1-amd64.deb
+targetUri: 10.10.10.200:8089

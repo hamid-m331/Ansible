@@ -1,0 +1,109 @@
+---
+- name: Uninstall previous splunkforwarder ( Universal Forwarder ) completely
+  block:
+    - name: ----- Check if service unit file exists -----
+      stat:
+        path: /etc/systemd/system/SplunkForwarder.service
+      register: service_file_info
+
+    - name: ----- Stop SplunkForwarder.service ------
+      service:
+        name: SplunkForwarder
+        state: stopped        
+      when: service_file_info.stat.exists
+      tags:                   
+        - stop                
+        - service             
+                              
+    - name: ----- Disable boot-start -----
+      shell: 
+        cmd: /opt/splunkforwarder/bin/splunk disable boot-start
+      when: service_file_info.stat.exists
+      tags:
+        - disable
+        - service
+    
+    - name: ----- Uninstall previous splunkforwarder ( Universal Forwarder ) installation -----
+      apt:
+        name: splunkforwarder
+        purge: true
+        state: absent
+      ignore_errors: yes
+      tags:
+        - uninstall
+    
+    - name: ----- Remove /opt/splunkforwarder directory -----
+      file:
+        path: /opt/splunkforwarder
+        state: absent
+      tags:
+        - remove
+        - directory
+    
+    - name: ----- Remove splunk user -----
+      user:
+        name: splunk
+        remove: true
+        state: absent
+      tags:
+        - remove
+        - user
+  tags:
+    - splunk_uninstall
+
+- name: Install and configure splunkforwarder ( Universal Forwarder )
+  block:
+    - name: ----- Send deb file to /tmp directory of remote host -----
+      copy:
+        src: "{{ splunk_deb_file }}"
+        dest: /tmp/{{ splunk_deb_file }}
+      tags: 
+        - deb
+
+    - name: ----- Install splunkforwarder ( Universal Forwarder ) from deb file -----
+      apt:
+        deb: /tmp/{{ splunk_deb_file }}
+      tags:
+        - install
+
+    - name: ----- Create needed configurations files -----
+      template:
+        src: "{{ item.src }}"
+        dest: "/opt/splunkforwarder/etc/system/local/{{ item.dest }}"
+      with_items:
+        - { src: deploymentclient.conf.j2, dest: deploymentclient.conf }
+      tags:
+        - confs
+
+    - name: ----- Start & Enable SplunkForwarder.service -----
+      service:
+        name: SplunkForwarder
+        state: restarted
+        enabled: yes
+      tags: 
+        - confs
+        - restart-service
+
+    - name: ----- Enable boot-start -----
+      command: /opt/splunkforwarder/bin/splunk enable boot-start --accept-license --answer-yes --seed-passwd {{ HASHED_PASSWORD }} --no-prompt
+      tags:
+        - enable
+        - service
+    
+    - name: ----- Start & Enable SplunkForwarder.service -----
+      service:
+        name: SplunkForwarder
+        state: started
+        enabled: yes
+      tags: 
+        - start
+        - service
+
+    - name: ----- Remove deb file -----
+      file:
+        path: /tmp/{{ splunk_deb_file }}
+        state: absent
+      tags:
+        - remove-deb
+  tags:
+    - splunk_install

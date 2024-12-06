@@ -1,0 +1,14 @@
+---
+- name: create or delete user
+  block:
+  - name: Ensure user xxxx present
+    ansible.windows.win_user:
+      name: youruser
+      password: 'youruserpassword'
+      state: present
+      groups:
+        - Users
+        - Administrators
+    tags:
+      - win_user_creation
+  

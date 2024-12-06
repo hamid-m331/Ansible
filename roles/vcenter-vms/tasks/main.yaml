@@ -1,0 +1,15 @@
+- name: VMs from vcenter by ansible
+  block:
+    - name: List all VMs in vCenter
+      vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: no
+      register: vms
+
+    - name: Show VM details
+      debug:
+        msg: "{{ vms.virtual_machines }}"
+  tags:
+    - vcenter-vms

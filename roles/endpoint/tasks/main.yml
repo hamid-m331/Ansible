@@ -1,0 +1,40 @@
+---
+- name: Endpoint Installation
+  block:
+    - name: Copy UEUM binary file to remote servers
+      copy:
+        src: "{{ item }}"
+        dest: /tmp/UEUM/
+        mode: '755'
+      loop:
+        - serverinfo.json
+        - UEMS_LinuxAgent.bin
+
+    - name: ----- locate /usr/local/manageengine/uems_agent/RemoveUEMSAgent.sh file -----
+      stat:
+        path: /usr/local/manageengine/uems_agent/RemoveUEMSAgent.sh
+      register: service_file_info
+
+    - name: Uninstall binary file
+      shell: "./RemoveUEMSAgent.sh"
+      args:
+        chdir: /usr/local/manageengine/uems_agent
+      when: service_file_info.stat.exists
+      become: yes
+      become_user: yourlinuxuser      
+
+
+    - name: Install binary file
+      command: "./UEMS_LinuxAgent.bin"
+      args:
+        chdir: /tmp/UEUM/
+      become: yes
+      become_user: yourlinuxuser
+
+    - name: Recursively remove directory
+      ansible.builtin.file:
+        path: /tmp/UEUM/
+        state: absent
+
+  tags:
+    - endpoint

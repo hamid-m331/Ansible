@@ -1,0 +1,4 @@
+---
+  - import_playbook: windows.yml
+  - import_playbook: linux.yml  
+  - import_playbook: vcenter.yml 

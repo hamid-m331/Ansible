@@ -1,0 +1,91 @@
+---
+- name: Install SYSMON
+  block:
+    - name: Obtain information about a file
+      ansible.windows.win_stat:
+        path: 'C:\Windows\System32\Winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx'
+      register: file_info
+    - debug:
+        var: file_info
+
+    - name: Restart event viewer
+      ansible.windows.win_service:
+        name: Sysmon
+        state: restarted
+      when: file_info.stat.exists
+
+    - name: Touch a Microsoft-Windows-Sysmon%4Operational.evtx
+      win_shell: 'Set-Content -Path "C:\Windows\System32\Winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx" -Value $null'
+      when: file_info.stat.exists
+      tags:
+        - win_sysmon_truncate
+      when: file_info.stat.exists 
+
+    - name: WIN SYSMON ACL
+      ansible.windows.win_acl:
+        path: C:\Windows\System32\Winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx
+        user: LOCAL SERVICE
+        type: allow
+        state: present
+        rights: FullControl
+
+    - name: WIN SYSMON ACL
+      ansible.windows.win_acl:
+        path: C:\Windows\System32\Winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx
+        user: Event Log Readers
+        type: allow
+        state: present
+        rights: Read
+
+    - name: Change owner of path
+      ansible.windows.win_owner:
+        path: C:\Windows\System32\Winevt\Logs\Microsoft-Windows-Sysmon%4Operational.evtx
+        user: LOCAL SERVICE
+        recurse: true
+
+    - name: Restart event viewer
+      ansible.windows.win_service:
+        name: Windows Event Log
+        state: restarted
+
+    - name: Create directory structure
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+    
+    - name: Copy Sysmon64.exe file
+      ansible.windows.win_copy:
+        src: files/Sysmon64.exe
+        dest: C:\Temp\Sysmon64.exe
+      tags:
+        - win_sysmon
+    
+    - name: Copy SysmonConfig file
+      ansible.windows.win_copy:
+        src: files/sysmonconfig-export.xml
+        dest: C:\Temp\sysmonconfig-export.xml
+      tags:
+        - win_sysmon
+
+    - name: Copy script-audit-config.bat file
+      ansible.windows.win_copy:
+        src: files/script-audit-config.bat
+        dest: C:\Temp\script-audit-config.bat
+      tags:
+        - win_sysmon
+
+    - name: Run Sysmon Installation PowerShell script
+      ansible.windows.win_powershell:
+        script: |
+          C:\Temp\sysmon64.exe -accepteula -i C:\Temp\sysmonconfig-export.xml
+          C:\Temp\script-audit-config.bat
+      tags:
+        - win_sysmon  
+  
+    - name: Remove directory structure
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: absent    
+
+  tags:
+  - win_sysmon

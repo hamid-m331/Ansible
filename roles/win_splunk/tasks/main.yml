@@ -1,0 +1,73 @@
+---
+- name: windows splunk deploymnet
+  block:
+    - name: Create directory structure
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: directory
+      tags:
+        - win_splunk
+        
+    - name: Copy Splunk msi file
+      ansible.windows.win_copy:
+        src: files/splunkforwarder-9.2.2-x64.msi
+        dest: C:\Temp\splunkforwarder-9.2.2-x64.msi
+      tags:
+        - win_splunk
+    
+    - name: Run Splunk Uninstallation PowerShell script
+      ansible.windows.win_powershell:
+        script: |
+          NET STOP SplunkForwarder
+          msiexec.exe /x "C:\Temp\splunkforwarder-9.2.2-x64.msi"  /quiet
+      tags:
+        - win_splunk
+    
+    - name: Run Splunk Installation PowerShell script
+      ansible.windows.win_powershell:
+        script: |
+          $installerPath = "C:\Temp\splunkforwarder-9.2.2-x64.msi"  # Update this with the correct path to the Splunk UF installer
+          $splunkInstallPath = "C:\Program Files\SplunkUniversalForwarder"
+          $deploymentServer = "10.10.10.201:8089"  # Replace with your deployment server address and port
+          $splunkUsername = "admin"  # Splunk admin username
+          $splunkPassword = "youradminpassword"  # Splunk admin password
+          
+          # Step 1: Install the Splunk Universal Forwarder
+          Write-Host "Installing Splunk Universal Forwarder..."
+          Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" INSTALLDIR=`"$splunkInstallPath`" AGREETOLICENSE=Yes /quiet" -Wait
+          
+          # Step 2: Configure Deployment Server with authentication
+          Write-Host "Configuring Deployment Server..."
+          $splunkExePath = Join-Path $splunkInstallPath "bin\splunk.exe"
+          & $splunkExePath set deploy-poll $deploymentServer --auth "$splunkUsername\:$splunkPassword"
+          
+          # Step 3: Start Splunk service with authentication
+          Write-Host "Starting Splunk Universal Forwarder service..."
+          & $splunkExePath start --accept-license --answer-yes --no-prompt --auth "$splunkUsername\:$splunkPassword"
+          
+          Write-Host "Splunk Universal Forwarder installed and started successfully."
+      tags:
+        - win_splunk
+    
+    - name: Create a file from a Jinja2 template
+      ansible.windows.win_template:
+        src: deploymentclient.conf.j2
+        dest: C:\Program Files\SplunkUniversalForwarder\etc\system\local\deploymentclient.conf
+      tags:
+          - win_splunk_deploy_conf
+
+    - name: Restart SPF
+      ansible.windows.win_service:
+        name: SplunkForwarder
+        state: restarted
+      tags:
+          - win_splunk_deploy_conf
+
+    - name: delete directory structure
+      ansible.windows.win_file:
+        path: C:\Temp
+        state: absent
+      tags:
+        - win_splunk
+  tags:
+         - win_splunk    

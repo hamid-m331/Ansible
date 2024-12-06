@@ -1,0 +1,18 @@
+[Unit]
+Description=kesl
+
+[Service]
+KillMode=control-group
+Type=forking
+SendSIGKILL=yes
+PIDFile=/var/run/wdserver.pid
+ExecStart=/var/opt/kaspersky/kesl/install-current/etc/init.d/kesl start
+ExecStop=/var/opt/kaspersky/kesl/install-current/etc/init.d/kesl stop
+TimeoutSec=600
+MemoryLimit=1024M
+CPUQuota=10%
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=kesl.service

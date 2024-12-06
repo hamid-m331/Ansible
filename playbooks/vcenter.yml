@@ -1,0 +1,9 @@
+- hosts: localhost
+  gather_facts: no
+  collections:
+    - community.vmware
+  
+  roles:
+    - role: vcenter-vms
+      tags:
+        - vcenter-vms

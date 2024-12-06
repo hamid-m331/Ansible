@@ -1,0 +1,53 @@
+---
+- name: 
+  block:
+  - name: Copy kesl_11.4.0-1096_amd64.deb file from Ansible server to the target
+    copy:
+      src: kesl_11.4.0-1096_amd64.deb
+      dest: /tmp/kesl_11.4.0-1096_amd64.deb
+    tags:
+    - kasper
+
+  - name: Install kesl package
+    command: dpkg -i /tmp/kesl_11.4.0-1096_amd64.deb
+    tags:
+    - kasper
+
+  - name: Replace autoinstall.ini document
+    template:
+      src: autoinstall.ini.j2
+      dest: /opt/kaspersky/kesl/doc/autoinstall.ini
+    tags:
+    - kasper-autoinstall
+
+  - name: Run kesl setup
+    command: /opt/kaspersky/kesl/bin/kesl-setup.pl --autoinstall=/opt/kaspersky/kesl/doc/autoinstall.ini
+    tags:
+    - kasper
+
+  - name: Stop kesl.service
+    become: yes
+    systemd:
+      name: kesl.service
+      state: stopped
+    tags:
+    - kasper-ram
+
+  - name: Replace ScanMemoryLimit value in kesl.ini
+    become: yes
+    replace:
+      path: /var/opt/kaspersky/kesl/common/kesl.ini
+      regexp: '^ScanMemoryLimit=8192$'
+      replace: 'ScanMemoryLimit=2048'
+    tags:
+    - kasper-ram    
+
+  - name: Start kesl.service
+    become: yes
+    systemd:
+      name: kesl.service
+      state: started
+    tags:
+    - kasper-ram
+  tags:
+  - kasper

@@ -1,0 +1,16 @@
+---
+- name: splunk unit file creation
+  block:
+    - name: splunk unit creation
+      template:
+        src: kesl.service.j2
+        dest: /etc/systemd/system/kesl.service
+  
+    - name: Restart enable service and reload Daemon
+      systemd_service:
+        state: restarted
+        daemon_reload: true
+        enabled: true
+        name: kesl.service
+  tags:
+    - splunk_unit

@@ -1,0 +1,23 @@
+---
+- name: Get NTP status and include host IP address
+  block:
+    - name: Run timedatectl and register output
+      command: timedatectl
+      register: ntp_state
+      tags:
+        - ntp_check
+
+    - name: Prepare content for writing
+      set_fact:
+        output_line: "{{ ntp_state.stdout | regex_search('Local time:.*') }} - IP: {{ ansible_host }}"
+      tags:
+        - ntp_check
+
+    - name: Write output to file
+      delegate_to: 127.0.0.1
+      lineinfile:
+        path: "/home/h.madahian/ansible/Ansible/roles/ntp/tasks/files/ntp_status"
+        line: "{{ output_line }}"
+        create: yes  # Create the file if it does not exist
+      tags:
+        - ntp_check

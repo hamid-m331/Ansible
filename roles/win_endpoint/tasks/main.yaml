@@ -1,0 +1,19 @@
+- name: Endpoint deploymnet
+  block:
+    - name: Copy binary file to remote servers
+      win_copy:
+        src: "{{ item }}"
+        dest: C:\temp\
+      loop:
+        - InstallAgentstartupscript.ps1
+        - LocalOffice_Agent.exe      
+
+    - name: pwl-run
+      win_command: powershell.exe -File C:\temp\InstallAgentstartupscript.ps1
+      register: script_output
+
+    - name: Display script output
+      debug:
+        msg: "{{ script_output.stdout }}"
+  tags:
+    - win_endpoint

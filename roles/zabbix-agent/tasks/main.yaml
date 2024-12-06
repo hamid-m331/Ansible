@@ -1,0 +1,52 @@
+- name: Create zabbix-agent dir
+  file:
+    path: /temp/zabbix-agent
+    state: directory
+  tags:
+    - zabbix-agent
+
+- name: Copy file with owner and permissions
+  copy:
+    src: zabbix-release_7.0-2+ubuntu22.04_all.deb
+    dest: /temp/zabbix-agent/zabbix-release_7.0-2+ubuntu22.04_all.deb
+
+- name: Install zabbix .deb repo
+  command: dpkg -i /temp/zabbix-agent/zabbix-release_7.0-2+ubuntu22.04_all.deb
+  tags:
+    - zabbix-agent
+
+- name: update cache
+  apt:
+    update_cache: yes
+  tags:
+    - zabbix-agent
+
+- name: Install zabbix agent
+  apt:
+    name: zabbix-agent2
+    update_cache: yes
+    state: latest
+  tags:
+    - zabbix-agent
+
+- name: Install zabbix agent-plugins
+  command: apt install zabbix-agent2-plugin-*
+  tags:
+    - zabbix-agent
+
+- name: Replace config with newer Server passive
+  ansible.builtin.replace:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: 'Server=127.0.0.1'
+    replace: 'Server=10.10.10.203'
+
+- name: Replace config with newer Server Active
+  ansible.builtin.replace:
+    path: /etc/zabbix/zabbix_agent2.conf
+    regexp: 'ServerActive=127.0.0.1'
+    replace: 'ServerActive=10.10.10.203'
+
+- name: zabbix-agent restart
+  systemd_service:
+    state: restarted
+    name: zabbix-agent2.service

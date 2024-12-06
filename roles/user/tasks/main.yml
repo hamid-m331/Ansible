@@ -1,0 +1,13 @@
+---
+- name: Add the user 'yournewuser' primary group of 'sudo'
+  ansible.builtin.user:
+    name: yournewuser
+    comment: yournewuser
+    password: "{{ ansible_password|password_hash('sha512') }}"
+    shell: /bin/bash
+    create_home: yes
+    uid: 1040
+    groups: sudo,devops
+    append: true
+  tags:
+    - user

@@ -1,0 +1,12 @@
+---
+- name: get timedatectl output
+  block:
+    - name: get timedatectl output
+      shell: "timedatectl | grep Local | sed 's/^ *//'"
+      register:
+        timedatectl_output
+    - name: debug out put
+      debug:
+        var: timedatectl_output.stdout
+  tags:
+    - timedatectl

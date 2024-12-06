@@ -1,0 +1,23 @@
+- name: Backup original sources.list (optional)
+  copy:
+    src: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.bak
+  when: not ansible_check_mode
+  tags:
+  - apt-repo
+
+- name: Replace Ubuntu archive with custom repository
+  replace:
+    path: /etc/apt/sources.list
+    regexp: 'http://archive.ubuntu.com/ubuntu'
+    replace: 'http://aptrepo.yourcomnayrepo.xyz/repository/apt-proxy/'
+    backup: yes
+- name: Update package lists
+  apt:
+    update_cache: yes
+  tags:
+  - apt-repo
+
+
+
+

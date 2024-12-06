@@ -1,0 +1,3 @@
+vcenter_hostname: 10.10.10.201
+vcenter_username: readonlyuser@vsphere.local
+vcenter_password: "yourreadonlypassword"

@@ -1,0 +1,14 @@
+---
+
+- name: Firewall rule to allow Kasper any
+  community.windows.win_firewall_rule:
+    name: Kasper-Rule
+    localport: any
+    action: allow
+    direction: in
+    protocol: any
+    remoteip: 10.10.10.10
+    state: present
+    enabled: yes
+  tags:
+    firewall

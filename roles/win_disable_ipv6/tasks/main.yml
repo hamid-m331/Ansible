@@ -1,0 +1,6 @@
+---
+- name: IPv6 disable for windows
+  win_shell: |
+    Disable-NetAdapterBinding -Name "*" -ComponentID ms_tcpip6
+  tags:  # This should be outside the blockinfile module
+    - win_disable_ipv6

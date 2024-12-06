@@ -1,0 +1,11 @@
+---
+
+all:
+windows:
+  hosts:
+    10.10.10.10:
+
+    
+linux:
+  hosts:
+    10.10.10.11:

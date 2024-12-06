@@ -1,0 +1,12 @@
+---
+- name: ping google from windows machines
+  block:
+    - name: Ping google.com
+      win_shell: |
+        ping google.com
+      register: ping_result
+    - name: Show the ping result
+      debug:
+        var: ping_result.stdout
+  tags:
+    - win_ping

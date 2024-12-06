@@ -1,0 +1,63 @@
+---
+- name: auditd installation
+  block:
+    - name: Check if auditd installed before
+      shell: "which auditctl"
+      become: True
+      register: result
+      ignore_errors: true
+      tags:
+        - auditd
+
+    - name: Print auditd installation info
+      debug:
+        msg: auditd is already installed on {{ result.stdout }}
+      when: result.rc == 0
+      tags:
+        - auditd
+
+    - name: UnInstall auditd  (state=present is optional)
+      ansible.builtin.apt:
+        name: auditd
+        state: absent
+      when: result.rc == 0
+      tags:
+        - auditd
+    - name: remove salt
+      file:
+        path: /etc/apt/sources.list.d/salt.list
+        state: absent
+        
+    - name: Install auditd  (state=present is optional)
+      ansible.builtin.apt:
+        name: auditd
+        state: present
+        update_cache: true
+
+
+    - name: Copy audit.rules
+      copy:
+        src: audit.rules
+        dest: /etc/audit/rules.d/audit.rules
+        mode: '0600'
+        backup: yes
+      tags:
+        - auditd
+
+    - name: Copy auditd.service file
+      copy:
+        src: auditd.service
+        dest: /etc/systemd/system/auditd.service
+        mode: '0644'
+      tags:
+        - auditd
+
+    - name: Restart service auditd
+      service:
+        name: auditd
+        daemon_reload: true
+        state: restarted
+      tags:
+        - auditd
+  tags:
+    - auditd

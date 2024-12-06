@@ -1,0 +1,30 @@
+- name : ntp change and restart
+  block:
+    - name: Replace text in a file
+      replace:
+        path: /etc/systemd/timesyncd.conf
+        regexp: '(^#NTP.*)|(^NTP.*)'
+        replace: 'NTP=0.pool.ntp.org'
+
+    - name: Replace text in a file
+      replace:
+        path: /etc/systemd/timesyncd.conf
+        regexp: '(^#FallbackNTP.*)|(^FallbackNTP.*)'
+        replace: 'FallbackNTP=1.pool.ntp.org'   
+
+    - name: Set set-local-rtc to zero
+      command: timedatectl set-local-rtc 0
+
+
+    - name: Make sure a service unit is running
+      systemd:
+       name: systemd-timesyncd
+       masked: no
+
+    - name: Make sure a service unit is running
+      systemd:
+       name: systemd-timesyncd
+       state: restarted
+
+  tags:
+    - change-ntp

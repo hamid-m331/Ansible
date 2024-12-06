@@ -1,0 +1,36 @@
+---
+- ansible.posix.sysctl:
+    name: net.ipv6.conf.all.disable_ipv6
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+  tags:
+    - ipv6
+
+- ansible.posix.sysctl:
+    name: net.ipv6.conf.default.disable_ipv6
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+  tags:
+    - ipv6
+- name: Permanent changes
+  command: sysctl -p
+  tags:
+    - ipv6
+
+- name: Replace GRUB_CMDLINE_LINUX_DEFAULT value
+  lineinfile:
+    dest: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT=""'
+    line: GRUB_CMDLINE_LINUX_DEFAULT="ipv6.disable=1"
+    state: present
+  tags:
+    - ipv6_grub
+
+- name: Permanent changes
+  command: update-grub
+  tags:
+    - ipv6_grub

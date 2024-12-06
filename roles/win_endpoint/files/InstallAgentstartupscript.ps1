@@ -1,0 +1,1 @@
+your endpoint powershell script should be here

@@ -1,0 +1,30 @@
+---
+- hosts: windows
+  gather_facts: false
+  vars_prompt:
+  - name: ansible_password
+    prompt: "Enter the  password"
+    private: yes  # Set to yes if you want
+
+  roles:
+    - role: firewall
+      tags:
+        - firewall
+    - role: win_disable_ipv6
+      tags:
+        - win_disable_ipv6
+    - role: win_splunk
+      tags:
+        - win_splunk
+    - role: win_sysmon    
+      tags:
+        - win_sysmon        
+    - role: win_user   
+      tags:
+        - win_user
+    - role: win_ping_outside
+      tags:
+        - win_ping
+    - role: win_endpoint
+      tags:
+        - win_endpoint        

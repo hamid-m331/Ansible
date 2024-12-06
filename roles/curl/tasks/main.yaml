@@ -1,0 +1,15 @@
+- name: curl
+  block:
+  - name: Check that you can connect (GET) to a page and it returns a status
+    uri:
+      url: https://api.test.com
+      status_code: 404
+    register: curl_registered
+
+  - name: debug output
+    debug:
+      var: curl_registered.status
+      
+  tags:
+    - curl
+    

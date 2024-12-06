@@ -1,0 +1,26 @@
+[Unit]
+Description=kesl
+
+[Service]
+KillMode=control-group
+Type=forking
+SendSIGKILL=yes
+PIDFile=/var/run/wdserver.pid
+ExecStart=/var/opt/kaspersky/kesl/install-current/etc/init.d/kesl start
+ExecStop=/var/opt/kaspersky/kesl/install-current/etc/init.d/kesl stop
+TimeoutSec=600
+LimitNOFILE=infinity
+
+Restart=on-failure
+
+# Resource limits
+MemoryLimit=1024M            # Set a memory limit of 500 MB
+CPUQuota=10%                # Set CPU quota to 50% (50% of one CPU core)
+
+# Optional: Limit number of tasks (processes)
+TasksMax=100 
+
+
+[Install]
+WantedBy=multi-user.target
+Alias=kesl.service

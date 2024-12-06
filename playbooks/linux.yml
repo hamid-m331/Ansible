@@ -1,0 +1,48 @@
+---
+- hosts: linux
+  gather_facts: false
+  vars_prompt:
+  - name: ansible_password
+    prompt: "Enter the  password"
+    private: yes  # Set to yes if you want
+
+  roles:
+    - role: kasper
+      tags:
+        - kasper
+
+    - role: endpoint
+      tags:
+        - endpoint
+
+    - role: ipv6
+      tags:
+        - ipv6 
+    - role: ntp
+      tags:
+        - ntp_status
+    - role: auditd
+      tags:
+        - auditd
+    - role: user
+      tags:
+        - user
+    - role: apt-repo
+      tags:
+        - apt-repo
+    - role: zabbix-agent   
+      tags:
+        - zabbix-agent         
+    - role: timedatectl   
+      tags:
+        - timedatectl         
+    - role: curl   
+      tags:
+        - curl
+    - role: splunk
+      tags:
+        - splunk_uninstall
+        - splunk_install
+    - role: change-ntp   
+      tags:
+        - change-ntp       
